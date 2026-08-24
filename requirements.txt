@@ -3,7 +3,7 @@ ipython
 notebook
 sympy
 machinevision-toolbox-python
-roboticstoolbox-python
+#roboticstoolbox-python
 pytest
 ipympl
 coppeliasim-zmqremoteapi-client

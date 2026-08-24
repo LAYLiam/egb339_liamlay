@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.optimize
+import time
 
 L0 = 138 # height of shoulder raise joint above the ground plane
 L1 = 135 # length of upper arm
@@ -45,8 +46,9 @@ def inverse_kinematics(pstar):
     theta
         A numpy array of shape (3,) of joint angles [theta1, theta2, theta3] (radians)
     """
-
-    raise NotImplementedError("TODO: complete inverse_kinematics()")
+    guess_theta = np.array([0.0, 0.0, 0.0])
+    theta = scipy.optimize.fmin(cost, guess_theta, args=(pstar,))
+    return np.array(theta, dtype=np.float64)
 
 # --------- Question 3 ---------- #
 def inverse_kinematics_geom(pstar):
@@ -64,9 +66,27 @@ def inverse_kinematics_geom(pstar):
         A numpy array of shape (3,) of joint angles [theta1, theta2, theta3] (radians)
 
     """
+    start = time.time() 
 
-    raise NotImplementedError("TODO: complete inverse_kinematics_geom()")
+    x, y, z = pstar
 
+    r = np.sqrt(x**2 + y**2)
+
+    a = r - L3
+    b = L0 - z + L4
+    c = np.sqrt(a**2 + b**2)
+
+    delta = np.arctan2(a, b)
+    alpha = np.arccos((L1**2 + L2**2 - c**2)/(2*L1*L2))
+    beta = np.arccos((L1**2 + c**2 - L2**2)/(2*L1*c))
+
+    theta1 = np.arctan2(y, x)
+    theta2 = np.pi - beta - delta
+    theta3 = np.pi - alpha - (np.pi/2 - theta2)
+
+    print(f"inverse_kinematics_geom took {time.time() - start} ms to run.")
+
+    return np.array([theta1, theta2, theta3], dtype=np.float64)
 
 if __name__ == "__main__":
     print("")

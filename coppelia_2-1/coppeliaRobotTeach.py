@@ -62,7 +62,6 @@ class GUI(object):
         return slider_update
 
     def display_fk(self):
-        # replace with your method of computing FK
         endeffector_pose = self.robot.get_end_effector_pose()
         fk_str = f'x: {endeffector_pose[0]:.3f}, y: {endeffector_pose[1]:.3f}, z: {endeffector_pose[2]:.3f}'
         self.pose_text.delete('1.0', tk.END)
