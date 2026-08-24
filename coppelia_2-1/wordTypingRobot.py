@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import time
 
 
 L0 = 138  # height of shoulder raise joint above ground plane
@@ -43,33 +44,33 @@ def getPositionForLetter(letter: str) -> np.array:
     '''
     # Keys positions are mapped relative to the top left corner of the image
     MAPPED_KEYS = {
-        'Q': (70, 80, 3), 
-        'W': (100, 80, 3), 
-        'E': (130, 80, 3), 
-        'R': (165, 80, 3), 
-        'T': (200, 80, 3), 
-        'Y': (235, 80, 3), 
-        'U': (270, 80, 3), 
-        'I': (300, 80, 3), 
-        'O': (335, 80, 3), 
-        'P': (370, 80, 3), 
-        'A': (75, 110, 3),
-        'S': (110, 110, 3),
-        'D': (140, 110, 3),
-        'F': (175, 110, 3),
-        'G': (210, 110, 3),
-        'H': (245, 110, 3),
-        'J': (275, 110, 3),
-        'K': (310, 110, 3),
-        'L': (340, 110, 3),
-        'Z': (95, 145, 3),
-        'X': (130, 145, 3),
-        'C': (160, 145, 3),
-        'V': (195, 145, 3),
-        'B': (225, 145, 3),
-        'N': (260, 145, 3),
-        'M': (295, 145, 3),
-        'ENTER': (450, 110, 3)
+        'Q': (70, 80, 1), 
+        'W': (100, 80, 1), 
+        'E': (130, 80, 1), 
+        'R': (165, 80, 1), 
+        'T': (200, 80, 1), 
+        'Y': (235, 80, 1), 
+        'U': (270, 80, 1), 
+        'I': (300, 80, 1), 
+        'O': (335, 80, 1), 
+        'P': (370, 80, 1), 
+        'A': (75, 110, 1),
+        'S': (110, 110, 1),
+        'D': (140, 110, 1),
+        'F': (175, 110, 1),
+        'G': (210, 110, 1),
+        'H': (245, 110, 1),
+        'J': (275, 110, 1),
+        'K': (310, 110, 1),
+        'L': (340, 110, 1),
+        'Z': (95, 145, 1),
+        'X': (130, 145, 1),
+        'C': (160, 145, 1),
+        'V': (195, 145, 1),
+        'B': (225, 145, 1),
+        'N': (260, 145, 1),
+        'M': (295, 145, 1),
+        'ENTER': (450, 110, 1)
     }
 
     rel_pos = MAPPED_KEYS[letter]
@@ -97,6 +98,44 @@ def getPositionForLetter(letter: str) -> np.array:
     return o_p
 
 
+def jointInterpolatedMotion(robotObj, j_start, j_end, steps=50, max_time=2):
+    '''
+    This function moves the robot joints between joint configuration start and end
+    using joint interpolated motion. In the implementation, it is used to move the
+    robot arm from 20mm above key to key.
+    '''
+    delta = (j_end - j_start)/steps
+    j = j_start
+
+    for step in range(steps):
+        robotObj.move_arm(*j)
+        time.sleep(max_time/steps)
+        j += delta
+
+        # bypass floating point calculation issues
+        if step == steps - 1:
+            robotObj.move_arm(*j_end)
+
+
+def cartesianInterpolatedMotion(robotObj, pos_start, pos_end, steps=20, max_time=0.5):
+    '''
+    This function moves the robot end effector position from start and end
+    using cartesian interpolated motion. In the implementation, it is used to move the
+    robot end effector from 20mm above a key to the key iteself.
+    '''
+    delta = (pos_end - pos_start)/steps
+    pos = pos_start
+
+    for step in range(steps):
+        robotObj.move_arm(*ikine(pos))
+        time.sleep(max_time/steps)
+        pos += delta
+
+        # bypass floating point calculation issues
+        if step == steps - 1:
+            robotObj.move_arm(*ikine(pos_end))
+
+
 def jumpToPos(robotObj, target_pos: np.array):
     '''
     This function should move the robot to the given position.
@@ -106,35 +145,37 @@ def jumpToPos(robotObj, target_pos: np.array):
     3. Move the robot to a position 20mm above the target position
     This strategy will avoid the pen to drag across the screen
     '''
-    import time 
     x, y, z = target_pos
     raised_target_pos = np.array([x, y, z + 20]) 
 
     # Move the robot to a position 20mm above the target position
-    pos = raised_target_pos
-    j1, j2, j3 = ikine(pos)
-    robotObj.move_arm(j1, j2, j3)
+    jointInterpolatedMotion(
+        robotObj, 
+        j_start=robotObj.get_joint_config(), 
+        j_end=ikine(raised_target_pos)
+    )
     time.sleep(3)
 
     # Move the robot to the target position
-    pos = target_pos  # You will need to change this
-    j1, j2, j3 = ikine(pos)
-    robotObj.move_arm(j1, j2, j3)
+    cartesianInterpolatedMotion(
+        robotObj, 
+        pos_start=raised_target_pos, 
+        pos_end=target_pos
+    )
     time.sleep(3)
 
     # Move the robot to a position 20mm above the target position
-    pos = raised_target_pos  # You will need to change this
-    j1, j2, j3 = ikine(pos)
+    cartesianInterpolatedMotion(
+        robotObj, 
+        pos_start=target_pos, 
+        pos_end=raised_target_pos
+    )
     time.sleep(3)
+
 
 def ikine(pos: np.array) -> np.array:
     '''
     This function should return the joint angles for the given position.
-
-    Joint limits
-    -90 <= Theta1 >= 90 
-      0 <= Theta2 >= 85
-    -10 <= Theta3 >= 75
     '''
     x, y, z = pos
 
@@ -151,12 +192,6 @@ def ikine(pos: np.array) -> np.array:
     theta1 = np.arctan2(y, x)
     theta2 = np.pi - beta - delta
     theta3 = np.pi - alpha - (np.pi/2 - theta2)
-
-    print(
-        np.degrees(theta1), 
-        np.degrees(theta2), 
-        np.degrees(theta3)
-    )
 
     return np.array([theta1, theta2, theta3], dtype=np.float64)
 
