@@ -1,3 +1,4 @@
+
 import math
 import numpy as np
 import time
@@ -98,45 +99,39 @@ def getPositionForLetter(letter: str) -> np.array:
     return o_p
 
 
-def jointInterpolatedMotion(robotObj, j_start, j_end, steps=50, max_time=2):
+def jointInterpolatedMotion(robotObj, j_start, j_end, steps=50, max_time=1.5):
     '''
     This function moves the robot joints between joint configuration start and end
-    using joint interpolated motion. In the implementation, it is used to move the
-    robot arm from 20mm above key to key.
+    using joint interpolated motion. 
     '''
-    delta = (j_end - j_start)/steps
-    j = j_start
-
+    delta = 0
     for step in range(steps):
-        robotObj.move_arm(*j)
-        time.sleep(max_time/steps)
-        j += delta
-
+        q = (j_end - j_start)*np.sin(delta) + j_start
+        robotObj.move_arm(*q)
+        delta += (np.pi/2)/steps
+        
         # bypass floating point calculation issues
         if step == steps - 1:
             robotObj.move_arm(*j_end)
 
+        while np.allclose(np.array(robotObj.get_joint_config(), dtype=np.float64), q, atol=1e-4):
+            time.sleep(0.01)
 
-def cartesianInterpolatedMotion(robotObj, pos_start, pos_end, steps=20, max_time=0.5):
+
+def cartesianInterpolatedMotion(robotObj, pos_start, pos_end, steps=50, max_time=1.5):
     '''
     This function moves the robot end effector position from start and end
-    using cartesian interpolated motion. In the implementation, it is used to move the
-    robot end effector from 20mm above a key to the key iteself.
+    using cartesian interpolated motion. 
     '''
-    delta = (pos_end - pos_start)/steps
-    pos = pos_start
-
     for step in range(steps):
-        robotObj.move_arm(*ikine(pos))
-        time.sleep(max_time/steps)
-        pos += delta
+        q = ikine(pos_start + (pos_end - pos_start)*(step/(steps-1)))
+        robotObj.move_arm(*q)
 
-        # bypass floating point calculation issues
-        if step == steps - 1:
-            robotObj.move_arm(*ikine(pos_end))
+        while np.allclose(np.array(robotObj.get_joint_config(), dtype=np.float64), q, atol=1e-4):
+            time.sleep(0.01)
 
 
-def jumpToPos(robotObj, target_pos: np.array):
+def jumpToPos(robotObj, target_pos: np.array, interpolation="joint"):
     '''
     This function should move the robot to the given position.
     Note: We recommend the following strategy:
@@ -148,30 +143,57 @@ def jumpToPos(robotObj, target_pos: np.array):
     x, y, z = target_pos
     raised_target_pos = np.array([x, y, z + 20]) 
 
-    # Move the robot to a position 20mm above the target position
-    jointInterpolatedMotion(
-        robotObj, 
-        j_start=robotObj.get_joint_config(), 
-        j_end=ikine(raised_target_pos)
-    )
-    time.sleep(3)
+    if interpolation == "joint":
+        """ Joint interpolated motion """
+        # Move the robot to a position 20mm above the target position
+        jointInterpolatedMotion(
+            robotObj, 
+            j_start=robotObj.get_joint_config(), 
+            j_end=ikine(raised_target_pos)
+        )
+        time.sleep(3)
 
-    # Move the robot to the target position
-    cartesianInterpolatedMotion(
-        robotObj, 
-        pos_start=raised_target_pos, 
-        pos_end=target_pos
-    )
-    time.sleep(3)
+        # Move the robot to the target position
+        jointInterpolatedMotion(
+            robotObj, 
+            j_start=ikine(raised_target_pos), 
+            j_end=ikine(target_pos)
+        )
+        time.sleep(3)
 
-    # Move the robot to a position 20mm above the target position
-    cartesianInterpolatedMotion(
-        robotObj, 
-        pos_start=target_pos, 
-        pos_end=raised_target_pos
-    )
-    time.sleep(3)
+        # Move the robot to a position 20mm above the target position
+        jointInterpolatedMotion(
+            robotObj, 
+            j_start=ikine(target_pos), 
+            j_end=ikine(raised_target_pos)
+        )
+        time.sleep(3)
 
+    else:
+        """ Cartesian interpolated motion """   
+        # Move the robot to a position 20mm above the target position
+        cartesianInterpolatedMotion(
+            robotObj, 
+            pos_start=np.array(robotObj.get_end_effector_pose()[:3], dtype=np.float64)*1000, 
+            pos_end=raised_target_pos
+        )
+        time.sleep(3)
+
+        # Move the robot to the target position
+        cartesianInterpolatedMotion(
+            robotObj, 
+            pos_start=raised_target_pos, 
+            pos_end=target_pos
+        )
+        time.sleep(3)
+        
+        # Move the robot to a position 20mm above the target position
+        cartesianInterpolatedMotion(
+            robotObj, 
+            pos_start=target_pos, 
+            pos_end=raised_target_pos
+        )
+        time.sleep(3)
 
 def ikine(pos: np.array) -> np.array:
     '''

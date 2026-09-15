@@ -10,6 +10,7 @@ import argparse
 from coppeliaRobot import CoppeliaRobot
 from genericRobotAPI import GenericRobotAPI
 from wordTypingRobot import wordTypingRobot
+from a22wordTypingRobot import wordTypingRobot as wtr2
 
 
 if __name__ == "__main__":
@@ -22,4 +23,5 @@ if __name__ == "__main__":
     else:
         robot = CoppeliaRobot()
     
-    wordTypingRobot(robot, "apple")
+    #wordTypingRobot(robot, "apple")
+    wtr2(robot, "dlprh")

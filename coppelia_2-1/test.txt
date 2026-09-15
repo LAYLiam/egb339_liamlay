@@ -1,0 +1,4 @@
+>> Test forward kinematics letter
+getPositionForLetter('A')/1000
+point = sim.createDummy(0.01)
+sim.setObjectPosition(point, -1, {0.2419398 , -0.07503929,  0.001})
