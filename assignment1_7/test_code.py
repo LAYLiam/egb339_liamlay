@@ -3,11 +3,6 @@
 """
 
 import unittest
-from gradescope_utils.autograder_utils.decorators import (
-    weight,
-    number,
-    visibility,
-)
 import os
 import math
 import machinevisiontoolbox as mvt
@@ -17,9 +12,6 @@ import numpy as np
 class TestAssignment1_7_Q1(unittest.TestCase):
     # All marks here add up to 0.0%
 
-    @number("Q1 Test 1")
-    @weight(0)
-    @visibility("visible")
     def test_question_1_import(self):
         """
         Test that the calculate_surface_area method can be imported
@@ -31,9 +23,6 @@ class TestAssignment1_7_Q1(unittest.TestCase):
             self.fail("Could not import calculate_surface_area from assignment1_7.py")
 
 
-    @number("Q1 Test 2")
-    @weight(0)
-    @visibility("visible")
     def test_question_1_type(self):
         """
         Test that the calculate_surface_area method returns an int or float
@@ -53,9 +42,6 @@ class TestAssignment1_7_Q1(unittest.TestCase):
 class TestAssignment1_7_Q2(unittest.TestCase):
     # All marks here add up to 0.0%
 
-    @number("Q2 Test 1")
-    @weight(0)
-    @visibility("visible")
     def test_question_2_import(self):
         """
         Test that the get_image_coordinates method can be imported
@@ -67,9 +53,6 @@ class TestAssignment1_7_Q2(unittest.TestCase):
             self.fail("Could not import get_image_coordinates from assignment1_7.py")
 
 
-    @number("Q2 Test 2")
-    @weight(0)
-    @visibility("visible")
     def test_question_2_simple(self):
         """
         Test that the get_image_coordinates method returns a 2x1 matrix

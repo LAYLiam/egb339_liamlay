@@ -3,11 +3,6 @@
 """
 
 import unittest
-from gradescope_utils.autograder_utils.decorators import (
-    weight,
-    number,
-    visibility,
-)
 import os
 import math
 import machinevisiontoolbox as mvt
@@ -17,9 +12,6 @@ import cv2
 class TestAssignment1_6_Q1(unittest.TestCase):
     # All marks here add up to 0.0%
 
-    @number("Q1 Test 1")
-    @weight(0)
-    @visibility("visible")
     def test_question_1_import(self):
         """
         Test that the coloured_objects method can be imported
@@ -30,10 +22,6 @@ class TestAssignment1_6_Q1(unittest.TestCase):
         except ImportError:
             self.fail("Could not import coloured_objects from assignment1_6.py")
 
-
-    @number("Q1 Test 2")
-    @weight(0)
-    @visibility("visible")
     def test_question_1_simple(self):
         """
         Test that the coloured_objects method works for the sample image
@@ -56,7 +44,6 @@ class TestAssignment1_6_Q1(unittest.TestCase):
             print(f"expected {reference_shapes_manual[0]} red squares, {reference_shapes_manual[1]} green squares, and {reference_shapes_manual[2]} blue squares")
 
         self.assertEqual(shapes, reference_shapes_manual)
-
 
 if __name__ == "__main__":
     unittest.main()

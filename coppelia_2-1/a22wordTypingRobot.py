@@ -94,6 +94,7 @@ def getPositionForLetter(letter: str) -> np.array:
     ) @ k_p)[:3]
 
     return o_p
+
  
 def jumpToPos(robotObj, target_pos: np.array):
     '''

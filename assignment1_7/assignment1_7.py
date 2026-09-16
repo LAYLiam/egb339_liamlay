@@ -51,6 +51,7 @@ def get_image_coordinates(H: np.ndarray, Q: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
+    """
     print("")
     print("Running the public tests.")
     print("To check one question, use: pixi run run_tests 1")
@@ -67,5 +68,5 @@ if __name__ == "__main__":
             pytest_args = ["-k", f"question_{int(question)}_", "."]
         else:
             pytest_args += sys.argv[1:]
-    pytest.main(pytest_args)
+    pytest.main(pytest_args)"""
 
