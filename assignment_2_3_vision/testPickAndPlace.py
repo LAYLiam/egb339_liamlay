@@ -88,7 +88,7 @@ def test_final_positions(robot:CoppeliaRobot, target_positions):
     for shape, target in target_positions.items():
         place_pos = positions[shape][:2]
 
-        errors[shape] = np.linalg.norm(target - place_pos)
+        errors[shape] = np.linalg.norm(target[:2] - place_pos)
         print(f"{shape} error = {errors[shape]:.2f} mm.")
     return errors
 
@@ -100,11 +100,11 @@ def gui(robot: CoppeliaRobot):
         img.disp(block=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     robot = CoppeliaRobot()
 
     robot.home()
-    warping_homography = create_homography(theta=0, skew_x=0, skew_y=0, perspective_warp1=0, perspective_warp2=0)
+    warping_homography = create_homography(theta=0, skew_x=-0.1, skew_y=0.2, perspective_warp1=0, perspective_warp2=0)
 
     img = robot.get_image()
     warped_img = img.warp_perspective(warping_homography, tile=True)[0]
